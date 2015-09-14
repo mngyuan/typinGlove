@@ -1,5 +1,7 @@
 from serial import Serial
 
+# I like never use right pinky (10) for alpha characters
+# and I never use right thumb (6)
 alphabet_to_finger = {
     'a': 5,
     'b': 2,
@@ -35,9 +37,13 @@ words = [
 ]
 
 
-def build_mappings():
+def build_mappings(words):
     fingers_to_words = {}
     for word in words:
+        word = word.lower()
+        if not word.isalpha():
+            # skip weird word
+            continue
         finger_key = ''
         for c in word:
             finger_key += str(alphabet_to_finger[c])
@@ -47,10 +53,17 @@ def build_mappings():
             fingers_to_words[finger_key] = [word]
     return fingers_to_words
 
+def build_wordlist():
+    words = []
+    with open('/usr/share/dict/words') as wordf:
+        for line in wordf:
+            words.append(line.strip())
+    return words
+
 
 def main():
-    usbser = Serial('/dev/cu.usbmodem1412')
-    fingers_to_words = build_mappings()
+    usbser = Serial('/dev/cu.usbmodem1422')
+    fingers_to_words = build_mappings(build_wordlist())
 
     keysBuffer = []
     while True:
@@ -58,9 +71,14 @@ def main():
         if line[-1] == 'u':
             print(line[0])
             # depressed
-            if line[0] == '1':
+            if line[0] == '1' or line[0] == '6':
                 # word boundary (space)
-                print(fingers_to_words[''.join(keysBuffer)])
+                options = fingers_to_words[''.join(keysBuffer)]
+                if len(options) > 1:
+                    print('more than one option, picking first')
+                    print(options[0])
+                else:
+                    print(options[0])
                 keysBuffer = []
             else:
                 keysBuffer.append(line[0])
