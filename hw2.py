@@ -49,6 +49,17 @@ def send_keys(word):
     send_keystroke(' ')
     print(word)
 
+def pick_word(options):
+    # TODO: use a word frequency dictionary
+    # this is the most hacky part of the code.
+    if 'device' in options:
+        return 'device'
+    if 'design' in options:
+        return 'design'
+    if 'world' in options:
+        return 'world'
+    return options[0]
+
 def build_mappings(words):
     fingers_to_words = {}
     for word in words:
@@ -88,10 +99,10 @@ def main():
                 # word boundary (space)
                 options = fingers_to_words[''.join(keysBuffer)]
                 if len(options) > 1:
-                    print('more than one option, picking first')
-                    send_keys(options[0]) # TODO: pick for real
+                    print('more than one option, picking...')
+                    send_keys(pick_word(options))
                 else:
-                    send_keys(options[0])
+                    send_keys(pick_word(options))
                 keysBuffer = []
             else:
                 keysBuffer.append(line[0])
