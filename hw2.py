@@ -1,4 +1,5 @@
 from serial import Serial
+import os
 
 # I like never use right pinky (10) for alpha characters
 # and I never use right thumb (6)
@@ -34,8 +35,19 @@ alphabet_to_finger = {
 words = [
     'hello',
     'world'
+    # actually wordlist is filled from /usr/share/dict/words
 ]
 
+keystroke_command = 'osascript -e \'tell application "System Events" to keystroke "%s"\''
+
+def send_keystroke(c):
+    os.system(keystroke_command % c)
+
+def send_keys(word):
+    for c in word:
+        send_keystroke(c)
+    send_keystroke(' ')
+    print(word)
 
 def build_mappings(words):
     fingers_to_words = {}
@@ -65,6 +77,7 @@ def main():
     usbser = Serial('/dev/cu.usbmodem1422')
     fingers_to_words = build_mappings(build_wordlist())
 
+    print('Ready to parse your input.')
     keysBuffer = []
     while True:
         line = usbser.readline().strip()
@@ -76,9 +89,9 @@ def main():
                 options = fingers_to_words[''.join(keysBuffer)]
                 if len(options) > 1:
                     print('more than one option, picking first')
-                    print(options[0])
+                    send_keys(options[0]) # TODO: pick for real
                 else:
-                    print(options[0])
+                    send_keys(options[0])
                 keysBuffer = []
             else:
                 keysBuffer.append(line[0])
